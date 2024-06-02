@@ -1,97 +1,48 @@
-import { mat4, vec3 } from 'gl-matrix'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import './App.css'
-import { WebGpuContext, WebGpuPipeline, WindowSize } from './lib/types'
 import { useWebGpuContext } from './lib/use-webgpu-context'
-import { useGPURenderPipeline } from './lib/use-webgpu-render-pipeline'
 import { useWindowSize } from './lib/use-window-size'
 
-import code from './code.wgsl?raw'
-import { degToRad } from './lib/math'
+import { useControls } from 'leva'
+import { vec4 } from 'wgpu-matrix'
+import { useOrbitControls } from './lib/world/orbit-controls'
+import { usePlayStop } from './lib/world/play-stop'
+import { WormsState, makeWorms } from './lib/world/worms'
+
+
+const INITIAL_STATE = {
+  camera: { phi: 90, radius: 20, theta: 0 },
+  light:  { phi: 120, radius: 25, theta: 340 },
+}
+const SENSITIVITY = 3
+const SEED = vec4.create(Math.random(), Math.random(), Math.random(), Math.random())
+const COUNT = 20
 
 export function App(): ReactNode {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
 
-  const { width, height } = useWindowSize()
+  const play = usePlayStop()
+  const size = useWindowSize()
 
+  const state = useControls({
+    fov:           { value: 80, min: 30, max: 120 },
+    deltaRotation: { value: 0.5, min: 0, max: 1 },
+    exaggeration:  { value: 5, min: 0, max: 25 },
+    speed:         { value: 10, min: 0, max: 20 },
+    smoothUnion:   { value: 0.08, min: 0.01, max: 3 },
+  }) as WormsState
+
+  const { camera, light } = useOrbitControls({ canvas, initialState: INITIAL_STATE, sensitivity: SENSITIVITY })
   const context = useWebGpuContext({ canvas })
-  const pipeline = useGPURenderPipeline({ code, context })
-  const render = useMemo(() => context && pipeline ? setupRender({ context, pipeline }) : null, [context, pipeline])
+  const worms = useMemo(() => context ? makeWorms({ ...state, seed: SEED, camera, count: COUNT, context, size, light }) : undefined, [context])
 
   useEffect(() => {
-    let id = -1;
+    play ? worms?.play() : worms?.stop()
+  }, [worms, play])
 
-    if (render) {
-      iterate()
-    }
+  useEffect(() => {
+      worms?.update({ ...state, camera, light, seed: SEED, size })
+  }, [camera, size, state])
 
-    function iterate(): void {
-      render!({ width, height })
-      id = requestAnimationFrame(iterate)
-    }
-
-    return function cancel(): void {
-      cancelAnimationFrame(id)
-    }
-  }, [render, width, height])
-
-  return (
-    <>
-     <canvas ref={setCanvas} width={width} height={height} />
-    </>
-  )
-}
-
-const FOV = 80
-const CAMERA: vec3 = [0, 0, 0]
-const CENTER: vec3 = [0, 0.5, -3]
-const NEGATIVE_CENTER = CENTER.map(x => -x) as vec3
-const UP: vec3 = [0, 1, 0]
-
-interface Props {
-  context:  WebGpuContext
-  pipeline: WebGpuPipeline
-}
-
-function setupRender(props: Props): (size: WindowSize) => void {
-  const { context: { context, device }, pipeline: { bindGroup, uniformBuffer, pipeline } } = props
-
-  let frame = 0;
-
-  return function render(size: WindowSize): void {
-    const { width, height } = size
-
-    const sceneViewMatrix = mat4.create();
-    mat4.lookAt(sceneViewMatrix, CAMERA, CENTER, UP);
-    mat4.translate(sceneViewMatrix, sceneViewMatrix, CENTER);
-    mat4.rotateX(sceneViewMatrix, sceneViewMatrix, degToRad(frame / 13));
-    mat4.rotateY(sceneViewMatrix, sceneViewMatrix, -degToRad(frame / 7));
-    mat4.translate(sceneViewMatrix, sceneViewMatrix, NEGATIVE_CENTER);
-    mat4.invert(sceneViewMatrix, sceneViewMatrix);
-
-    const params = new Float32Array([...sceneViewMatrix, width, height, FOV, frame]);
-    device.queue.writeBuffer(uniformBuffer, 0, params.buffer, params.byteOffset, params.byteLength);
-
-    // render pass
-    const commandEncoder = device.createCommandEncoder();
-    const passEncoder = commandEncoder.beginRenderPass({
-      colorAttachments: [
-        {
-          clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, // transparent background
-          loadOp: "clear",
-          storeOp: "store",
-          view: context.getCurrentTexture().createView(),
-        },
-      ],
-    });
-
-    passEncoder.setPipeline(pipeline);
-    passEncoder.setBindGroup(0, bindGroup);
-    passEncoder.draw(4, 1, 0, 0);
-    passEncoder.end();
-    device.queue.submit([commandEncoder.finish()]);
-
-    // next frame
-    frame ++
-  }
+  return <canvas ref={setCanvas} width={size.width} height={size.height} />
 }

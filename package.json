@@ -10,9 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "gl-matrix": "^3.4.3",
+    "@types/chroma-js": "^2.4.4",
+    "chroma-js": "^2.4.2",
+    "leva": "^0.9.35",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "vitest": "^1.6.0",
+    "webgpu-utils": "^1.8.2",
+    "wgpu-matrix": "^3.0.1"
   },
   "devDependencies": {
     "@eslint/compat": "^1.0.3",

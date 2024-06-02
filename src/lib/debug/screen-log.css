@@ -1,0 +1,13 @@
+.screen-log {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 100000;
+  color: white;
+}
+
+.screen-log p {
+  margin: 0;
+}
