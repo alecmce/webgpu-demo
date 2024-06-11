@@ -35,7 +35,7 @@ export function App(): ReactNode {
     deltaRotation: { value: 0.5, min: 0, max: 1 },
     exaggeration:  { value: 5, min: 0, max: 25 },
     speed:         { value: 10, min: 0, max: 20 },
-    smoothUnion:   { value: 0.08, min: 0.01, max: 3 },
+    smoothUnion:   { value: 1, min: 0.01, max: 5 },
   }) as WormsState
 
   const { camera, light } = useOrbitControls({ canvas, initialState: INITIAL_STATE, sensitivity: SENSITIVITY })
@@ -53,16 +53,30 @@ export function App(): ReactNode {
   return (
     <>
       <canvas className="canvas" ref={setCanvas} width={size.width} height={size.height} />
-      <div className="info">
-        <p>
-          Drag to rotate the camera, wheel to zoom in and out. Shift-drag to rotate the light and shift-wheel to move the
-          light in and out. Space starts and stops the simulation (currently also the render).
-        </p>
-        <p>
-          This simulation implements a ping-pong compute shader, and SDF raymarching in the fragment shader.
-          <a href="https://github.com/alecmce/webgpu-demo">Check out the code</a>.
-        </p>
-      </div>
+      { worms ? <Info /> : <Fallback /> }
    </>
+  )
+}
+
+function Info() {
+  return (
+    <div className="info">
+      <p>
+        This WebGPU simulation implements a ping-pong compute shader, and SDF raymarching and toon shading in the fragment
+        shader. <a href="https://github.com/alecmce/webgpu-demo">Check out the code</a>.
+      </p>
+      <p>
+        Drag to rotate the camera, wheel to zoom in and out. Shift-drag to rotate the light and shift-wheel to move the
+        light in and out. Space starts and stops the simulation (currently also the render).
+      </p>
+    </div>
+  )
+}
+
+function Fallback() {
+  return (
+    <div className="info">
+      <p>Sorry, this demo only works in WebGPU enabled browsers.</p>
+    </div>
   )
 }
