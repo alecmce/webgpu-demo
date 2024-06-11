@@ -25,7 +25,7 @@ export interface WormsComputeParameters {
   speed:         number
 }
 
-export type WormsCompute = [
+type WormsCompute = [
   compute:          (encoder: GPUCommandEncoder, pingPong: 0 | 1, deltaTime: number) => void,
   updateParameters: (parameters: WormsComputeParameters) => void,
 ]

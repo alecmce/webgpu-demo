@@ -1,4 +1,4 @@
-export interface TestResult {
+interface TestResult {
   message: () => string
   pass:    boolean
 }

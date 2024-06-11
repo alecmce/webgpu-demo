@@ -10,11 +10,15 @@ interface Props {
   workgroupCount:        number
 }
 
-export type PingPongCompute = [
+type PingPongCompute = [
   compute:          (encoder: GPUCommandEncoder, pingPong: 0 | 1) => void,
   updateParameters: (data: Float32Array) => void,
 ]
 
+/**
+ * Creates a structure for a ping-pong compute shader, which allows computations to read from an invariant
+ * current version while writing to the next version.
+ */
 export function makePingPongCompute(props: Props): PingPongCompute {
   const { buffers, context, initialParameters, initialSimulationData, module, workgroupCount } = props
   const { device } = context

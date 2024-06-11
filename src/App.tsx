@@ -18,6 +18,12 @@ const SENSITIVITY = 3
 const SEED = vec4.create(Math.random(), Math.random(), Math.random(), Math.random())
 const COUNT = 20
 
+/**
+ * TODO: `usePlayStop` wires up the space bar to start and stop the simulation. Just stop the compute, and allow the
+ * render to continue!
+ *
+ * `makeWorms` is the entry point into the simulation.
+ */
 export function App(): ReactNode {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
 
@@ -42,7 +48,21 @@ export function App(): ReactNode {
 
   useEffect(() => {
       worms?.update({ ...state, camera, light, seed: SEED, size })
-  }, [camera, size, state])
+  }, [camera, light, size, state])
 
-  return <canvas ref={setCanvas} width={size.width} height={size.height} />
+  return (
+    <>
+      <canvas className="canvas" ref={setCanvas} width={size.width} height={size.height} />
+      <div className="info">
+        <p>
+          Drag to rotate the camera, wheel to zoom in and out. Shift-drag to rotate the light and shift-wheel to move the
+          light in and out. Space starts and stops the simulation (currently also the render).
+        </p>
+        <p>
+          This simulation implements a ping-pong compute shader, and SDF raymarching in the fragment shader.
+          <a href="https://github.com/alecmce/webgpu-demo">Check out the code</a>.
+        </p>
+      </div>
+   </>
+  )
 }
