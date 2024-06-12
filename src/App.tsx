@@ -1,13 +1,14 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import './App.css'
 import { useWebGpuContext } from './lib/use-webgpu-context'
 import { useWindowSize } from './lib/use-window-size'
 
 import { useControls } from 'leva'
 import { vec4 } from 'wgpu-matrix'
+import { useDeboucedValue } from './world/debounce'
 import { useOrbitControls } from './world/orbit-controls'
 import { usePlayStop } from './world/play-stop'
-import { WormsState, makeWorms } from './world/worms'
+import { Worms, WormsState, makeWorms } from './world/worms'
 
 
 const INITIAL_STATE = {
@@ -16,7 +17,6 @@ const INITIAL_STATE = {
 }
 const SENSITIVITY = 3
 const SEED = vec4.create(Math.random(), Math.random(), Math.random(), Math.random())
-const COUNT = 20
 
 /**
  * `makeWorms` is the entry point into the simulation.
@@ -26,26 +26,35 @@ const COUNT = 20
  */
 export function App(): ReactNode {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
+  const [worms, setWorms] = useState<Worms | null>(null)
 
   const play = usePlayStop()
   const size = useWindowSize()
 
   const state = useControls({
+    count:         { value: 20, min: 1, max: 50 },
     fov:           { value: 80, min: 30, max: 120 },
     deltaRotation: { value: 0.5, min: 0, max: 1 },
     exaggeration:  { value: 10, min: 0, max: 25 },
     speed:         { value: 10, min: 0, max: 20 },
-    gravity:       { value: 5, min: 0, max: 50 },
+    gravity:       { value: 5, min: 0, max: 25 },
     smoothUnion:   { value: 1, min: 0.01, max: 5 },
   }) as WormsState
 
+
+  const count = useDeboucedValue(state.count)
   const { camera, light } = useOrbitControls({ canvas, initialState: INITIAL_STATE, sensitivity: SENSITIVITY })
   const context = useWebGpuContext({ canvas })
 
-  const worms = useMemo(() => {
-    const parameters = { ...state, seed: SEED, camera, count: COUNT, size, light }
-    return context ? makeWorms({ ...parameters, context }) : undefined
-  }, [context])
+  useEffect(() => {
+    const parameters = { ...state, seed: SEED, camera, count, size, light }
+    const worms = context ? makeWorms({ ...parameters, context }) : null
+    setWorms(worms)
+
+    return function unmount(): void {
+      worms?.dispose()
+    }
+  }, [context, count])
 
   useEffect(() => {
     play ? worms?.play() : worms?.stop()

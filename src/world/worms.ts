@@ -4,17 +4,20 @@ import { WormsComputeParameters, makeWormsCompute } from './worms-compute'
 import { makeWormsInitialSimulationData } from './worms-initial-simulation-data'
 import { WormsRenderParameters, makeWormsRender } from './worms-render'
 
-export interface WormsState extends WormsComputeParameters, WormsRenderParameters {}
+export interface WormsState extends WormsComputeParameters, WormsRenderParameters {
+  count: number
+}
 
 interface InitialParameters extends WormsState {
   context: WebGpuContext
   count:   number
 }
 
-interface Worms {
-  play:   VoidFunction
-  stop:   VoidFunction
-  update: (state: WormsState) => void
+export interface Worms {
+  play:    VoidFunction
+  stop:    VoidFunction
+  update:  (state: WormsState) => void
+  dispose: VoidFunction
 }
 
 export function makeWorms(initialParameters: InitialParameters): Worms {
@@ -30,17 +33,18 @@ export function makeWorms(initialParameters: InitialParameters): Worms {
 
   let time = -1
   let pingPong: 0 | 1 = 0
-  let playing = true
+  let isPlaying = true
+  let isDisposed = false
 
-  return { play, stop, update }
+  return { play, stop, update, dispose }
 
   function play(): void {
-    playing = true
+    isPlaying = !isDisposed
     iterate()
   }
 
   function stop(): void {
-    playing = false
+    isPlaying = false
   }
 
   function iterate(): void {
@@ -55,7 +59,7 @@ export function makeWorms(initialParameters: InitialParameters): Worms {
 
     pingPong = (pingPong + 1) % 2
 
-    if (playing) {
+    if (isPlaying) {
       requestAnimationFrame(iterate)
     } else {
       time = -1
@@ -65,5 +69,11 @@ export function makeWorms(initialParameters: InitialParameters): Worms {
   function update(state: WormsState): void {
     updateRender(state)
     updateCompute(state)
+  }
+
+  function dispose(): void {
+    isPlaying = false
+    isDisposed = true
+    buffers.forEach(buffer => buffer.destroy())
   }
 }

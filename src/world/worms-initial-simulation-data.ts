@@ -19,7 +19,7 @@ const RAINBOW = chroma.scale(['#ff0000','#ff8800','#FFEE00','#00FF00', '#1E90FF'
  * correspond to the structure per the webgpufundamentals.org link, above.
  */
 export function makeWormsInitialSimulationData(count: number): Float32Array {
-  const array = new Float32Array(count * BYTES_PER_WORM)
+  const array = new Float32Array(count * FLOATS_PER_WORM)
   const colors = RAINBOW.colors(count)
 
   for (let i = 0; i < count; i++) addWorm(i)
