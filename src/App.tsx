@@ -32,7 +32,7 @@ export function App(): ReactNode {
   const size = useWindowSize()
 
   const state = useControls({
-    count:         { value: 20, min: 1, max: 50 },
+    count:         { value: 20, min: 1, max: 50, step: 1 },
     fov:           { value: 80, min: 30, max: 120 },
     deltaRotation: { value: 0.5, min: 0, max: 1 },
     exaggeration:  { value: 10, min: 0, max: 25 },
