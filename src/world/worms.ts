@@ -1,4 +1,4 @@
-import { WebGpuContext } from '../types'
+import { WebGpuContext } from '../lib/types'
 import { makePingPongBuffers } from './ping-pong-buffers'
 import { WormsComputeParameters, makeWormsCompute } from './worms-compute'
 import { makeWormsInitialSimulationData } from './worms-initial-simulation-data'

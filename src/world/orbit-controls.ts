@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { constrain } from "../math"
+import { constrain } from "../lib/math"
 import { SphericalCoords } from "./spherical-coords"
 
 interface Props {

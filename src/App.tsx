@@ -5,9 +5,9 @@ import { useWindowSize } from './lib/use-window-size'
 
 import { useControls } from 'leva'
 import { vec4 } from 'wgpu-matrix'
-import { useOrbitControls } from './lib/world/orbit-controls'
-import { usePlayStop } from './lib/world/play-stop'
-import { WormsState, makeWorms } from './lib/world/worms'
+import { useOrbitControls } from './world/orbit-controls'
+import { usePlayStop } from './world/play-stop'
+import { WormsState, makeWorms } from './world/worms'
 
 
 const INITIAL_STATE = {
@@ -19,10 +19,10 @@ const SEED = vec4.create(Math.random(), Math.random(), Math.random(), Math.rando
 const COUNT = 20
 
 /**
+ * `makeWorms` is the entry point into the simulation.
+*
  * TODO: `usePlayStop` wires up the space bar to start and stop the simulation. Just stop the compute, and allow the
  * render to continue!
- *
- * `makeWorms` is the entry point into the simulation.
  */
 export function App(): ReactNode {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
@@ -33,14 +33,19 @@ export function App(): ReactNode {
   const state = useControls({
     fov:           { value: 80, min: 30, max: 120 },
     deltaRotation: { value: 0.5, min: 0, max: 1 },
-    exaggeration:  { value: 5, min: 0, max: 25 },
+    exaggeration:  { value: 10, min: 0, max: 25 },
     speed:         { value: 10, min: 0, max: 20 },
+    gravity:       { value: 5, min: 0, max: 50 },
     smoothUnion:   { value: 1, min: 0.01, max: 5 },
   }) as WormsState
 
   const { camera, light } = useOrbitControls({ canvas, initialState: INITIAL_STATE, sensitivity: SENSITIVITY })
   const context = useWebGpuContext({ canvas })
-  const worms = useMemo(() => context ? makeWorms({ ...state, seed: SEED, camera, count: COUNT, context, size, light }) : undefined, [context])
+
+  const worms = useMemo(() => {
+    const parameters = { ...state, seed: SEED, camera, count: COUNT, size, light }
+    return context ? makeWorms({ ...parameters, context }) : undefined
+  }, [context])
 
   useEffect(() => {
     play ? worms?.play() : worms?.stop()
@@ -54,7 +59,7 @@ export function App(): ReactNode {
     <>
       <canvas className="canvas" ref={setCanvas} width={size.width} height={size.height} />
       { worms ? <Info /> : <Fallback /> }
-   </>
+    </>
   )
 }
 

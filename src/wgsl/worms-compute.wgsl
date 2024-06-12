@@ -9,6 +9,7 @@ struct Parameters {
   exaggeration:   f32,
   speed:          f32,
   seed:           vec4<f32>,
+  gravity:        f32,
 }
 
 @binding(0) @group(0) var<uniform>             parameters: Parameters;
@@ -20,56 +21,34 @@ fn simulate(@builtin(global_invocation_id) global_invocation_id: vec3<u32>) {
   let index = global_invocation_id.x;
   let delta_time = parameters.delta_time;
   let speed = parameters.speed * parameters.delta_time;
+  let gravity = parameters.gravity * parameters.delta_time;
   let delta_rotation = parameters.delta_rotation * speed;
 
   init_rand(index, parameters.seed);
 
   let worm = readWorms.data[index];
-  let chain = update_chain(worm, delta_rotation);
+  let chain = update_chain(worm, gravity, delta_rotation);
   let positions = update_positions(worm, chain, speed);
 
   writeWorms.data[index] = Worm(positions, chain, worm.color, worm.radius);
 }
 
-fn update_chain(worm: Worm, delta_rotation: f32) -> array<vec2<f32>, 5> {
+fn update_chain(worm: Worm, gravity: f32, delta_rotation: f32) -> array<vec2<f32>, 5> {
   let current_position = worm.positions[0];
   let current_direction = worm.chain[4];
-  let new_direction = get_new_direction(current_position, current_direction, delta_rotation);
+  let new_direction = get_new_direction(current_position, current_direction, gravity, delta_rotation);
   return array<vec2<f32>, 5>(worm.chain[1], worm.chain[2], worm.chain[3], worm.chain[4], new_direction);
 }
 
-fn get_new_direction(current_position: vec3<f32>, current_direction: vec2<f32>, delta_rotation: f32) -> vec2<f32> {
-  let needs_change = needs_perimeter_change(current_position, current_direction);
-  let random_change = vec2<f32>((rand() - 0.5) * delta_rotation, (rand() - 0.5) * delta_rotation);
-  let perimeter_change = get_perimeter_change(current_direction, delta_rotation);
-  return current_direction + mix(random_change, perimeter_change, needs_change);
-}
+fn get_new_direction(current_position: vec3<f32>, current_direction: vec2<f32>, gravity: f32, delta_rotation: f32) -> vec2<f32> {
+  let random_delta = vec2<f32>((rand() - 0.5) * delta_rotation, (rand() - 0.5) * delta_rotation);
+  let current_velocity = spherical_to_cartesian(current_direction + random_delta);
 
-fn needs_perimeter_change(current_position: vec3<f32>, current_direction: vec2<f32>) -> f32 {
-  let parallelness = dot(normalize(current_position), spherical_to_cartesian(current_direction));
-  let towards_perimeter = step(0.0, parallelness);
-  let distance_from_perimeter = cubic_in(clamp(length(current_position) / PERIMETER, 0.0, 1.0));
-  return towards_perimeter * distance_from_perimeter;
-}
+  let towards_center = -current_position;
+  let distance_squared = dot(towards_center, towards_center);
+  let gravity_acceleration: vec3<f32> = towards_center * gravity / distance_squared;
 
-fn cubic_in(p: f32) -> f32 {
-  return p * p * p;
-}
-
-fn get_perimeter_change(current_direction: vec2<f32>, delta_rotation: f32) -> vec2<f32> {
-  let theta = current_direction[0];
-  let phi = current_direction[1];
-
-  let current_cartesian = spherical_to_cartesian(current_direction);
-  let rotation_axis = normalize(cross(current_cartesian, UP));
-  let rotation_quaternion = quaternion_from_axis_and_angle(rotation_axis, radians(-delta_rotation));
-  let new_cartesian = rotate_vector(rotation_quaternion, current_cartesian);
-
-  return cartesian_to_spherical(new_cartesian);
-}
-
-fn positive_mod(value: f32, limit: f32) -> f32 {
-  return (value % limit + limit) % limit;
+  return cartesian_to_spherical(current_velocity + gravity_acceleration);
 }
 
 fn update_positions(worm: Worm, chain: array<vec2<f32>, 5>, speed: f32) -> array<vec3<f32>, 3> {
@@ -101,9 +80,10 @@ fn spherical_to_cartesian(rotation: vec2<f32>) -> vec3<f32> {
 }
 
 fn cartesian_to_spherical(cartesian: vec3<f32>) -> vec2<f32> {
-  let r = length(cartesian);
-  let theta = atan2(cartesian.x, cartesian.z);
-  let phi = acos(cartesian.y / r);
+  let normalized = normalize(cartesian);
+  let alpha = atan2(normalized.x, normalized.z);
+  let theta = select(alpha, alpha + PI, normalized.z < 0);
+  let phi = acos(normalized.y) * sign(normalized.z);
   return vec2<f32>(theta, phi);
 }
 

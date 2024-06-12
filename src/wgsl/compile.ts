@@ -1,9 +1,14 @@
-import { CodeBlock } from "./types";
-
 interface Props {
   blocks: CodeBlock[]
   id:     string
 }
+
+interface CodeBlock {
+  id:            string;
+  code:          string;
+  dependencies?: string[];
+}
+
 
 /** Compiles a set of code blocks into a single string. */
 export function compileCode(props: Props): string {

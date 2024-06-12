@@ -1,4 +1,4 @@
-import { WebGpuContext } from "../types"
+import { WebGpuContext } from "../lib/types"
 import { createBufferWithUpdate } from "./create-buffer"
 
 interface Props {

@@ -1,8 +1,8 @@
 import chroma from "chroma-js"
 import { vec3 } from "wgpu-matrix"
-import { repeat } from "../arrays"
-import { degToRad } from "../math"
-import { BYTES_PER_FLOAT } from "../types"
+import { repeat } from "../lib/arrays"
+import { degToRad } from "../lib/math"
+import { BYTES_PER_FLOAT } from "../lib/types"
 
 const RADIUS = 1.0
 const SIZE = 10
@@ -14,6 +14,10 @@ const FLOATS_PER_WORM = BYTES_PER_WORM / BYTES_PER_FLOAT
 
 const RAINBOW = chroma.scale(['#ff0000','#ff8800','#FFEE00','#00FF00', '#1E90FF', '#0000CD', '#9900FF']).mode('hsl');
 
+/**
+ * Creates the initial state for the simulation data. Note that the structure of each Float32Array in `addWorm` must
+ * correspond to the structure per the webgpufundamentals.org link, above.
+ */
 export function makeWormsInitialSimulationData(count: number): Float32Array {
   const array = new Float32Array(count * BYTES_PER_WORM)
   const colors = RAINBOW.colors(count)
@@ -22,8 +26,8 @@ export function makeWormsInitialSimulationData(count: number): Float32Array {
   return array
 
   function addWorm(index: number): void {
-    const phi = degToRad(rnd() * 180)
-    const theta = degToRad(rnd() * 180)
+    const phi = degToRad(360 * rnd() - 180)
+    const theta = degToRad(360 * rnd())
     const position = vec3.create(rnd() * SIZE, rnd() * SIZE, rnd() * SIZE)
     const [r, g, b] = chroma(colors[index]).gl()
 
@@ -36,9 +40,8 @@ export function makeWormsInitialSimulationData(count: number): Float32Array {
     ])
     array.set(data, index * FLOATS_PER_WORM)
   }
+}
 
-  // Returns a random number between -1 and 1.
-  function rnd(): number {
-    return 2 * Math.random() - 1
-  }
+function rnd(): number {
+  return 2 * Math.random() - 1
 }

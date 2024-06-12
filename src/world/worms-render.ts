@@ -1,6 +1,6 @@
 import { mat4, vec3 } from "wgpu-matrix";
-import { degToRad } from "../math";
-import { WebGpuContext, WindowSize } from "../types";
+import { degToRad } from "../lib/math";
+import { WebGpuContext, WindowSize } from "../lib/types";
 import { getCode } from "../wgsl/blocks";
 import { createBufferWithUpdate } from "./create-buffer";
 import { SphericalCoords, sphericalToCartesian } from "./spherical-coords";

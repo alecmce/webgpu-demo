@@ -1,4 +1,4 @@
-import { WebGpuContext } from "../types";
+import { WebGpuContext } from "../lib/types"
 
 interface Props {
   context:           WebGpuContext

@@ -27,10 +27,6 @@ export function length(value: number[]): number {
   return Math.hypot(...value)
 }
 
-export function positiveMod(a: number, mod: number): number {
-  return (a % mod + mod) % mod
-}
-
 export function constrain(value: number, constraint: Constraint): number {
   return isWrapConstriant(constraint)
     ? wrap(constraint)
@@ -44,9 +40,17 @@ export function constrain(value: number, constraint: Constraint): number {
   function weakClamp(constraint: OptionalConstraint): number {
     const { min = -Infinity, max = Infinity } = constraint
     return clamp(value, min, max)
-  }
+    }
 
   function isWrapConstriant(constraint: Constraint): constraint is WrapConstraint {
     return (constraint as WrapConstraint).wrap
   }
+
+  function positiveMod(a: number, mod: number): number {
+    return (a % mod + mod) % mod
+  }
+}
+
+export function step(limit: number, value: number): 0 | 1 {
+  return value > limit ? 1 : 0;
 }
