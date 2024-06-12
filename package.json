@@ -25,12 +25,12 @@
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",
     "@webgpu/types": "^0.1.42",
-    "eslint": "9.x",
+    "eslint": "8.x",
     "eslint-plugin-react": "^7.34.2",
-    "globals": "^15.3.0",
+    "globals": "^15.4.0",
     "knip": "^5.18.2",
     "typescript": ">=5.0.0",
-    "typescript-eslint": "^7.11.0",
+    "typescript-eslint": "^7.13.0",
     "vite": "^5.2.0"
   }
 }
