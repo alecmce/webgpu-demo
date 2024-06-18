@@ -53,22 +53,22 @@ export function makeWorms(initialParameters: InitialParameters): Worms {
     time = now
 
     const encoder = device.createCommandEncoder();
-    compute(encoder, pingPong, deltaTime)
+    if (isPlaying) {
+      compute(encoder, pingPong, deltaTime)
+    }
     render(encoder, pingPong)
     device.queue.submit([encoder.finish()]);
 
-    pingPong = (pingPong + 1) % 2
-
     if (isPlaying) {
-      requestAnimationFrame(iterate)
-    } else {
-      time = -1
+      pingPong = (pingPong + 1) % 2
     }
+
+    requestAnimationFrame(iterate)
   }
 
   function update(state: WormsState): void {
-    updateRender(state)
     updateCompute(state)
+    updateRender(state)
   }
 
   function dispose(): void {

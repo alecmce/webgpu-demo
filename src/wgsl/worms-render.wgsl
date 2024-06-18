@@ -46,5 +46,5 @@ fn vs_main(@builtin(vertex_index) vertexIndex : u32) -> ScreenPosition {
 fn fs_main(screen: ScreenPosition) -> @location(0) vec4<f32> {
   let origin = (uniforms.scene_view_matrix * ORIGIN).xyz;
   let direction = normalize(uniforms.scene_view_matrix * (screen.camera - ORIGIN)).xyz;
-  return rayMarching(Ray(origin, direction, OUTPUT_COLOR));
+  return rayMarching(Ray(origin, direction, OUTPUT_COLOR), uniforms.background, uniforms.light);
 }

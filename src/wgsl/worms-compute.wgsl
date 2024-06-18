@@ -87,18 +87,6 @@ fn cartesian_to_spherical(cartesian: vec3<f32>) -> vec2<f32> {
   return vec2<f32>(theta, phi);
 }
 
-fn quaternion_from_axis_and_angle(axis: vec3<f32>, angle: f32) -> vec4<f32> {
-  let half_angle = angle / 2.0;
-  let sin_half_angle = sin(half_angle);
-  return vec4<f32>(axis * sin_half_angle, cos(half_angle));
-}
-
-fn rotate_vector(quaternion: vec4<f32>, v: vec3<f32>) -> vec3<f32> {
-  let u = vec3<f32>(quaternion.x, quaternion.y, quaternion.z);
-  let s = quaternion.w;
-  return 2.0 * dot(u, v) * u + (s * s - dot(u, u)) * v + 2.0 * s * cross(u, v);
-}
-
 struct Line {
   origin:    vec3<f32>,
   direction: vec3<f32>, // normalized

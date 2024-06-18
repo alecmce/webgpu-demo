@@ -26,7 +26,6 @@ export function useWebGpuContext(props: Props): WebGpuContext | null {
 
       if (adapter && context && device) {
         const format = navigator.gpu.getPreferredCanvasFormat()
-        // TODO: { alphaMode: 'premultiplied' } ?
         context.configure({ ...config, device, format })
         setContext({ adapter, context, device, format })
       }

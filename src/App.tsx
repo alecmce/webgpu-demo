@@ -18,12 +18,7 @@ const INITIAL_STATE = {
 const SENSITIVITY = 3
 const SEED = vec4.create(Math.random(), Math.random(), Math.random(), Math.random())
 
-/**
- * `makeWorms` is the entry point into the simulation.
-*
- * TODO: `usePlayStop` wires up the space bar to start and stop the simulation. Just stop the compute, and allow the
- * render to continue!
- */
+/** `makeWorms` is the entry point into the simulation. */
 export function App(): ReactNode {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
   const [worms, setWorms] = useState<Worms | null>(null)
@@ -32,6 +27,7 @@ export function App(): ReactNode {
   const size = useWindowSize()
 
   const state = useControls({
+    background:    { value: '#333333' },
     count:         { value: 20, min: 1, max: 50, step: 1 },
     fov:           { value: 80, min: 30, max: 120 },
     deltaRotation: { value: 0.5, min: 0, max: 1 },
@@ -40,7 +36,6 @@ export function App(): ReactNode {
     gravity:       { value: 5, min: 0, max: 25 },
     smoothUnion:   { value: 1, min: 0.01, max: 5 },
   }) as WormsState
-
 
   const count = useDeboucedValue(state.count)
   const { camera, light } = useOrbitControls({ canvas, initialState: INITIAL_STATE, sensitivity: SENSITIVITY })

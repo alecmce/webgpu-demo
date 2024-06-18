@@ -6,7 +6,6 @@ struct Sdf {
   normal:   vec3<f32>,
 };
 
-
 struct Sphere {
   color:  vec3<f32>,
   center: vec3<f32>,

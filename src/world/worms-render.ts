@@ -4,11 +4,11 @@ import { WebGpuContext, WindowSize } from "../lib/types";
 import { getCode } from "../wgsl/blocks";
 import { createBufferWithUpdate } from "./create-buffer";
 import { SphericalCoords, sphericalToCartesian } from "./spherical-coords";
+import chroma from "chroma-js";
 
 const UP = vec3.create(0, 1, 0)
 const ORIGIN = vec3.create(0, 0, 0)
 const COLOR_ATTACHMENTS = { clearValue: [0, 0, 0, 0], loadOp: 'clear', storeOp: 'store' } as const
-const BACKGROUND = vec3.create(0.9, 0.9, 0.9)
 
 interface Props {
   buffers:               [GPUBuffer, GPUBuffer]
@@ -19,10 +19,11 @@ interface Props {
 }
 
 export interface WormsRenderParameters {
+  background:  string
   camera:      SphericalCoords
+  fov:         number
   light:       SphericalCoords
   size:        WindowSize
-  fov:         number
   smoothUnion: number
 }
 
@@ -32,13 +33,7 @@ type Render = [
 ]
 
 
-/**
- * Constructs a render pipeline.
- *
- * TODO: This is tightly coupled to the example with vertex and fragment shaders right now. Some metadata about the
- * structure of the WGSL code needs to be included in the props to make this more flexible (potentially the whole of
- * the `createRenderPipeline` object is that metadata?!)
-*/
+/** Constructs a render pipeline. */
 export function makeWormsRender(props: Props): Render {
   const { buffers, context, count, initialParameters, initialSimulationData } = props;
   const { device, format, context: gpuContext } = context
@@ -112,7 +107,8 @@ export function makeWormsRender(props: Props): Render {
 
 
 function getRenderParameters(props: WormsRenderParameters): Float32Array {
-  const { camera, light, size, fov, smoothUnion } = props
+  const { background, camera, light, size, fov, smoothUnion } = props
+  const [r, g, b] = chroma(background).gl()
   const { width, height } = size
 
   const cameraXYZ = sphericalToCartesian({
@@ -124,12 +120,12 @@ function getRenderParameters(props: WormsRenderParameters): Float32Array {
   const lightXYZ = sphericalToCartesian({
     phi:    degToRad(light.phi),
     radius: light.radius,
-    theta:  degToRad(light.theta),
+    theta:  degToRad(-light.theta),
   })
 
   const sceneViewMatrix = mat4.create();
   mat4.lookAt(cameraXYZ, ORIGIN, UP, sceneViewMatrix);
   mat4.invert(sceneViewMatrix, sceneViewMatrix);
 
-  return new Float32Array([...sceneViewMatrix, ...lightXYZ, 0, ...BACKGROUND, 0, width, height, fov, smoothUnion]);
+  return new Float32Array([...sceneViewMatrix, ...lightXYZ, 0, r, g, b, 0, width, height, fov, smoothUnion]);
 }
