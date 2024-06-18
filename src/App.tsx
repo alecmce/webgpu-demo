@@ -22,6 +22,7 @@ const SEED = vec4.create(Math.random(), Math.random(), Math.random(), Math.rando
 export function App(): ReactNode {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
   const [worms, setWorms] = useState<Worms | null>(null)
+  const [infoMinimized, setInfoMinimized] = useState(false)
 
   const play = usePlayStop()
   const size = useWindowSize()
@@ -62,23 +63,40 @@ export function App(): ReactNode {
   return (
     <>
       <canvas className="canvas" ref={setCanvas} width={size.width} height={size.height} />
-      { worms ? <Info /> : <Fallback /> }
+      { worms ? <Info infoMinimized={infoMinimized} setInfoMinimized={setInfoMinimized} /> : <Fallback /> }
     </>
   )
 }
 
-function Info() {
+interface InfoProps {
+  infoMinimized:    boolean
+  setInfoMinimized: (minimized: boolean) => void
+}
+
+function Info(props: InfoProps): ReactNode {
+  const { infoMinimized, setInfoMinimized } = props
   return (
-    <div className="info">
-      <p>
-        This WebGPU simulation implements a ping-pong compute shader, and SDF raymarching and toon shading in the fragment
-        shader. <a href="https://github.com/alecmce/webgpu-demo">Check out the code</a>.
-      </p>
-      <p>
-        Drag to rotate the camera, wheel to zoom in and out. Shift-drag to rotate the light and shift-wheel to move the
-        light in and out. Space starts and stops the simulation (currently also the render).
-      </p>
+    <div className={`info ${infoMinimized ? 'minimized' : ''}`} onClick={infoMinimized ? () => setInfoMinimized(false) : undefined}>
+      <div className="icon" onClick={() => setInfoMinimized(true)}><MinimizeSvg /></div>
+      <div className="content">
+        <p>
+          This WebGPU simulation implements a ping-pong compute shader, and SDF raymarching and toon shading in the fragment
+          shader. <a href="https://github.com/alecmce/webgpu-demo">Check out the code</a>.
+        </p>
+        <p>
+          Drag to rotate the camera, wheel to zoom in and out. Shift-drag to rotate the light and shift-wheel to move the
+          light in and out. Space starts and stops the simulation, while the light and camera remain interactive.
+        </p>
+      </div>
     </div>
+  )
+}
+
+function MinimizeSvg(): ReactNode {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+      <path d="M240-120v-80h480v80H240Z"/>
+    </svg>
   )
 }
 

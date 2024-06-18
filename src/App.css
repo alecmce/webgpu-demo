@@ -19,6 +19,19 @@
   width: 60vw;
   min-width: 200px;
   border-radius: 10px 0 0 0;
+  display: flex;
+  flex-direction: row;
+  transition: right 200ms ease;
+}
+
+.info.minimized {
+  right: -59vw;
+}
+
+.info .icon {
+  width: 24px;
+  height: 24px;
+  fill: white;
 }
 
 .info p {
